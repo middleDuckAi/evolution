@@ -1935,6 +1935,8 @@
                                     evo.tabs({ url: url, title: title, reload: 0 });
                                 }
                             }
+                        } else {
+                            evo.tabs({ url: '?a=2', title: 'Dashboard', reload: 0 });
                         }
                     }
                     evo.tabsStore();
