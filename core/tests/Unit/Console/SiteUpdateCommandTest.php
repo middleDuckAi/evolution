@@ -60,13 +60,18 @@ test('site updater repairs composer vendor state before artisan commands', funct
     $source = (string) file_get_contents(dirname(__DIR__, 3) . '/src/Console/SiteUpdateCommand.php');
 
     expect($source)
-        ->toContain("composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --classmap-authoritative")
+        ->toContain('$this->composerInstallCommand()')
         ->toContain('buildCustomComposerUpdateCommand')
-        ->toContain("composer dump-autoload -o --no-dev --classmap-authoritative")
+        ->toContain("runCoreShellCommand('php artisan package:discover')")
+        ->toContain('--no-scripts')
         ->not->toContain('new Application()')
         ->not->toContain("runCoreShellCommand('composer update')");
 
     expect(strpos($source, 'installComposerDependencies();'))->toBeLessThan(strpos($source, '$this->runCoreMigrations();'));
+    expect(strpos($source, '$this->composerInstallCommand()'))->toBeLessThan(strpos($source, 'buildCustomComposerUpdateCommand($customPackages)'));
+    expect(strpos($source, 'buildCustomComposerUpdateCommand($customPackages)'))->toBeLessThan(strpos($source, "runCoreShellCommand('php artisan package:discover')"));
+    expect(invokeSiteUpdateMethod($this->command, 'composerInstallCommand'))
+        ->toBe('composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --classmap-authoritative --no-scripts');
 });
 
 test('site updater builds constrained composer update for custom packages', function () {
@@ -80,5 +85,5 @@ test('site updater builds constrained composer update for custom packages', func
     ]]);
 
     expect($command)
-        ->toBe("composer update 'evolution-cms/eai' 'seiger/stask' --with-all-dependencies --no-dev --no-interaction --prefer-dist --optimize-autoloader --classmap-authoritative");
+        ->toBe("composer update 'evolution-cms/eai' 'seiger/stask' --with-all-dependencies --no-dev --no-interaction --prefer-dist --optimize-autoloader --classmap-authoritative --no-scripts");
 });
